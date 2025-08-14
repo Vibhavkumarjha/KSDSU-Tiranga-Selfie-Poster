@@ -17,7 +17,7 @@
 <form id="posterForm">
   <label>Name: </label><input type="text" id="name" placeholder="Your Name"><br>
   <label>Post: </label><input type="text" id="post" placeholder="Your Post"><br>
-  <label>Department: </label><input type="text" id="dept" placeholder="Your Department"><br>
+  <label>Department/College: </label><input type="text" id="dept" placeholder="Your Department or College"><br>
   <label>Upload Selfie: </label><input type="file" id="selfie" accept="image/*"><br>
 </form>
 
@@ -36,7 +36,6 @@ let selfieImg = new Image();
 let selfieLoaded = false;
 let frameLoaded = false;
 
-// Selfie box adjusted to fit mobile and desktop screens
 let selfieBox = { leftPercent: 0.27, topPercent: 0.32, widthPercent: 0.46, heightPercent: 0.41, x: 0, y: 0, width: 0, height: 0 };
 
 frame.onload = () => {
@@ -87,12 +86,16 @@ function drawPoster() {
   const textX = canvas.width / 2;
   const textStartY = selfieBox.y + selfieBox.height + 30;
 
-  ctx.font = `${Math.floor(canvas.width / 20)}px Arial`;
-  ctx.fillStyle = "#000";
   ctx.textAlign = "center";
+  ctx.font = `bold ${Math.floor(canvas.width / 20)}px Arial`;
 
+  ctx.fillStyle = "orange";
   ctx.fillText(name, textX, textStartY);
+
+  ctx.fillStyle = "white";
   ctx.fillText(post, textX, textStartY + Math.floor(canvas.width / 25));
+
+  ctx.fillStyle = "green";
   ctx.fillText(dept, textX, textStartY + 2 * Math.floor(canvas.width / 25));
 }
 
