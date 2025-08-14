@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>KSDSU Selfie Poster</title>
 <style>
   body { font-family: Arial; text-align: center; margin: 10px; }
   input, label { margin: 5px; width: 90%; max-width: 300px; }
-  canvas { border: 1px solid #ccc; margin-top: 20px; width: 100%; height: auto; }
+  canvas { border: 1px solid #ccc; margin-top: 20px; width: 100%; height: auto; max-width: 100%; }
   button { margin-top: 10px; padding: 10px 20px; font-size: 16px; }
 </style>
 </head>
@@ -30,54 +30,53 @@ const ctx = canvas.getContext('2d');
 
 const frame = new Image();
 frame.crossOrigin = 'anonymous';
-frame.src = 'https://i.postimg.cc/1z3v40vX/poster-png.png';
+frame.src = 'https://i.postimg.cc/vHG2McVQ/image.png';
 
 let selfieImg = new Image();
 let selfieLoaded = false;
 let frameLoaded = false;
 
-let transparentArea = {x: 200, y: 150, width: 400, height: 500};
+// Selfie box adjusted to fit mobile and desktop screens
+let selfieBox = { leftPercent: 0.27, topPercent: 0.32, widthPercent: 0.46, heightPercent: 0.41, x: 0, y: 0, width: 0, height: 0 };
 
 frame.onload = () => {
   frameLoaded = true;
   canvas.width = frame.width;
   canvas.height = frame.height;
+
+  selfieBox.x = selfieBox.leftPercent * canvas.width;
+  selfieBox.y = selfieBox.topPercent * canvas.height;
+  selfieBox.width = selfieBox.widthPercent * canvas.width;
+  selfieBox.height = selfieBox.heightPercent * canvas.height;
+
   drawPoster();
 };
 
-document.getElementById('selfie').addEventListener('change', function(e){
+document.getElementById('selfie').addEventListener('change', function(e) {
   const file = e.target.files[0];
-  if(!file) return;
+  if (!file) return;
   const reader = new FileReader();
-  reader.onload = function(evt){
+  reader.onload = function(evt) {
     selfieImg.onload = () => {
       selfieLoaded = true;
       drawPoster();
     };
     selfieImg.src = evt.target.result;
-  }
+  };
   reader.readAsDataURL(file);
 });
 
-function drawPoster(){
-  if(!frameLoaded) return;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+function drawPoster() {
+  if (!frameLoaded) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
 
-  if(selfieLoaded){
-    // Autofit selfie inside transparent area while keeping aspect ratio
-    const areaAspect = transparentArea.width / transparentArea.height;
-    const selfieAspect = selfieImg.width / selfieImg.height;
-    let w, h;
-    if(selfieAspect > areaAspect){
-      w = transparentArea.width;
-      h = w / selfieAspect;
-    } else {
-      h = transparentArea.height;
-      w = h * selfieAspect;
-    }
-    const x = transparentArea.x + (transparentArea.width - w)/2;
-    const y = transparentArea.y + (transparentArea.height - h)/2;
+  if (selfieLoaded) {
+    const scale = Math.min(selfieBox.width / selfieImg.width, selfieBox.height / selfieImg.height);
+    const w = selfieImg.width * scale;
+    const h = selfieImg.height * scale;
+    const x = selfieBox.x + (selfieBox.width - w) / 2;
+    const y = selfieBox.y + (selfieBox.height - h) / 2;
     ctx.drawImage(selfieImg, x, y, w, h);
   }
 
@@ -86,18 +85,18 @@ function drawPoster(){
   const dept = document.getElementById('dept').value;
 
   const textX = canvas.width / 2;
-  const textStartY = transparentArea.y + transparentArea.height + 30;
+  const textStartY = selfieBox.y + selfieBox.height + 30;
 
-  ctx.font = "bold 28px Arial";
+  ctx.font = `${Math.floor(canvas.width / 20)}px Arial`;
   ctx.fillStyle = "#000";
   ctx.textAlign = "center";
 
   ctx.fillText(name, textX, textStartY);
-  ctx.fillText(post, textX, textStartY + 40);
-  ctx.fillText(dept, textX, textStartY + 80);
+  ctx.fillText(post, textX, textStartY + Math.floor(canvas.width / 25));
+  ctx.fillText(dept, textX, textStartY + 2 * Math.floor(canvas.width / 25));
 }
 
-document.getElementById('downloadBtn').addEventListener('click', function(){
+document.getElementById('downloadBtn').addEventListener('click', function() {
   drawPoster();
   const link = document.createElement('a');
   link.download = 'KSDSU_Poster.png';
