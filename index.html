@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KSDSU Selfie Poster</title>
+<style>
+  body { font-family: Arial; text-align: center; margin: 10px; }
+  input, label { margin: 5px; width: 90%; max-width: 300px; }
+  canvas { border: 1px solid #ccc; margin-top: 20px; width: 100%; height: auto; }
+  button { margin-top: 10px; padding: 10px 20px; font-size: 16px; }
+</style>
+</head>
+<body>
+<h2>KSDSU Selfie Poster Generator</h2>
+
+<form id="posterForm">
+  <label>Name: </label><input type="text" id="name" placeholder="Your Name"><br>
+  <label>Post: </label><input type="text" id="post" placeholder="Your Post"><br>
+  <label>Department: </label><input type="text" id="dept" placeholder="Your Department"><br>
+  <label>Upload Selfie: </label><input type="file" id="selfie" accept="image/*"><br>
+</form>
+
+<canvas id="posterCanvas"></canvas><br>
+<button id="downloadBtn">Download Poster</button>
+
+<script>
+const canvas = document.getElementById('posterCanvas');
+const ctx = canvas.getContext('2d');
+
+const frame = new Image();
+frame.crossOrigin = 'anonymous';
+frame.src = 'https://i.postimg.cc/1z3v40vX/poster-png.png';
+
+let selfieImg = new Image();
+let selfieLoaded = false;
+let frameLoaded = false;
+
+let transparentArea = {x: 200, y: 150, width: 400, height: 500};
+
+frame.onload = () => {
+  frameLoaded = true;
+  canvas.width = frame.width;
+  canvas.height = frame.height;
+  drawPoster();
+};
+
+document.getElementById('selfie').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    selfieImg.onload = () => {
+      selfieLoaded = true;
+      drawPoster();
+    };
+    selfieImg.src = evt.target.result;
+  }
+  reader.readAsDataURL(file);
+});
+
+function drawPoster(){
+  if(!frameLoaded) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+
+  if(selfieLoaded){
+    // Autofit selfie inside transparent area while keeping aspect ratio
+    const areaAspect = transparentArea.width / transparentArea.height;
+    const selfieAspect = selfieImg.width / selfieImg.height;
+    let w, h;
+    if(selfieAspect > areaAspect){
+      w = transparentArea.width;
+      h = w / selfieAspect;
+    } else {
+      h = transparentArea.height;
+      w = h * selfieAspect;
+    }
+    const x = transparentArea.x + (transparentArea.width - w)/2;
+    const y = transparentArea.y + (transparentArea.height - h)/2;
+    ctx.drawImage(selfieImg, x, y, w, h);
+  }
+
+  const name = document.getElementById('name').value;
+  const post = document.getElementById('post').value;
+  const dept = document.getElementById('dept').value;
+
+  const textX = canvas.width / 2;
+  const textStartY = transparentArea.y + transparentArea.height + 30;
+
+  ctx.font = "bold 28px Arial";
+  ctx.fillStyle = "#000";
+  ctx.textAlign = "center";
+
+  ctx.fillText(name, textX, textStartY);
+  ctx.fillText(post, textX, textStartY + 40);
+  ctx.fillText(dept, textX, textStartY + 80);
+}
+
+document.getElementById('downloadBtn').addEventListener('click', function(){
+  drawPoster();
+  const link = document.createElement('a');
+  link.download = 'KSDSU_Poster.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+});
+</script>
+</body>
+</html>
